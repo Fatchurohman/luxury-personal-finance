@@ -223,6 +223,12 @@
       border: 1px solid var(--card-border);
     }
 
+    .btn-cancel {
+      background: #2a2d3a;
+      color: #bbb;
+      margin-top: 8px;
+    }
+
     /* Tabs & Filter */
     .tabs {
       display: flex;
@@ -304,18 +310,30 @@
       gap: 8px;
     }
 
-    .btn-delete {
-      background: transparent;
-      border: none;
-      color: #5a5f73;
+    .btn-action-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-edit, .btn-delete {
+      background: #1a1d27;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
       cursor: pointer;
-      font-size: 1rem;
-      padding: 4px;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 4px;
       transition: var(--transition);
+    }
+
+    .btn-edit:hover {
+      color: var(--gold-light);
+      border-color: var(--gold-primary);
     }
 
     .btn-delete:hover {
       color: var(--danger);
+      border-color: var(--danger);
     }
 
     .empty-state {
@@ -325,16 +343,24 @@
       padding: 24px 0;
     }
 
-    /* Quick Data Backup Panel */
+    /* Actions Panel */
     .backup-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
       margin-top: 12px;
     }
 
+    .btn-print {
+      grid-column: span 2;
+      background: linear-gradient(135deg, #1f2430, #141720);
+      color: var(--gold-primary);
+      border: 1px solid var(--gold-primary);
+      font-weight: 700;
+    }
+
     .file-input-wrapper {
       position: relative;
-      flex: 1;
     }
 
     .file-input-wrapper input[type="file"] {
@@ -345,6 +371,65 @@
       width: 100%;
       height: 100%;
       cursor: pointer;
+    }
+
+    /* Print / PDF Styling */
+    @media print {
+      body {
+        background-color: #fff !important;
+        color: #000 !important;
+        padding: 0;
+      }
+
+      .app-container {
+        max-width: 100%;
+      }
+
+      #txForm,
+      .tabs,
+      .backup-actions,
+      .btn-action-group,
+      .pulse-dot {
+        display: none !important;
+      }
+
+      .luxury-card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        color: #000 !important;
+        page-break-inside: avoid;
+        margin-bottom: 12px;
+      }
+
+      .luxury-card::before {
+        display: none !important;
+      }
+
+      .brand-title {
+        color: #000 !important;
+        -webkit-text-fill-color: #000 !important;
+      }
+
+      .balance-amount, .stat-value {
+        color: #000 !important;
+        text-shadow: none !important;
+      }
+
+      .tx-list {
+        max-height: none !important;
+        overflow: visible !important;
+      }
+
+      .tx-item {
+        border: 1px solid #ddd !important;
+        background: #fafafa !important;
+        color: #000 !important;
+      }
+
+      .tx-meta, .stat-title, .balance-label {
+        color: #555 !important;
+      }
     }
   </style>
 </head>
@@ -385,9 +470,11 @@
       </div>
     </section>
 
-    <!-- Form Transaksi Baru -->
+    <!-- Form Transaksi Baru / Edit -->
     <section class="luxury-card">
       <form id="txForm">
+        <input type="hidden" id="editingId" value="" />
+        
         <div class="form-group">
           <label for="txType">Jenis Pencatatan</label>
           <select id="txType" required>
@@ -405,10 +492,11 @@
 
         <div class="form-group">
           <label for="txAmount">Nominal (Rp)</label>
-          <input type="number" id="txAmount" placeholder="0" min="1" required />
+          <input type="text" id="txAmount" inputmode="numeric" placeholder="0" required autocomplete="off" />
         </div>
 
-        <button type="submit" class="btn">Simpan Transaksi</button>
+        <button type="submit" class="btn" id="btnSubmit">Simpan Transaksi</button>
+        <button type="button" class="btn btn-cancel" id="btnCancelEdit" style="display: none;">Batal Edit</button>
       </form>
     </section>
 
@@ -425,11 +513,12 @@
         <!-- Rendered by JS -->
       </div>
 
-      <!-- Backup JSON -->
+      <!-- Backup & Print Panel -->
       <div class="backup-actions">
-        <button class="btn btn-secondary" id="btnExport" style="font-size: 0.75rem; padding: 8px;">Backup Data</button>
+        <button class="btn btn-print" id="btnPrintPDF">Cetak / Simpan PDF</button>
+        <button class="btn btn-secondary" id="btnExport" style="font-size: 0.75rem; padding: 8px;">Backup JSON</button>
         <div class="file-input-wrapper">
-          <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 8px; width: 100%;">Restore Data</button>
+          <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 8px; width: 100%;">Restore JSON</button>
           <input type="file" id="importFileInput" accept=".json" />
         </div>
       </div>
@@ -437,12 +526,25 @@
   </div>
 
   <script>
-    // State Management & Storage Key
     const STORAGE_KEY = "aura_finance_v1_fatur62";
     let transactions = [];
     let currentFilter = "all";
 
-    // Format Rupiah Standar
+    // Helper: Format Angka Ribuan dengan Titik (String -> String)
+    const formatNumberInput = (value) => {
+      const numbers = value.replace(/\D/g, "");
+      return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+
+    // Helper: Parse Format Ribuan ke Angka Number murni
+    const parseFormattedNumber = (value) => {
+      if (!value) return 0;
+      const cleanStr = value.toString().replace(/\./g, "").replace(/,/g, ".");
+      const num = parseFloat(cleanStr);
+      return isNaN(num) ? 0 : num;
+    };
+
+    // Format Rupiah Tampilan
     const formatIDR = (amount) => {
       const num = Number(amount) || 0;
       return new Intl.NumberFormat("id-ID", {
@@ -462,6 +564,13 @@
         hour: "2-digit",
         minute: "2-digit"
       });
+    };
+
+    // Keamanan Sanitasi XSS
+    const escapeHTML = (str) => {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
     };
 
     // Validasi & Parsing Data JSON LocalStorage Secara Aman
@@ -499,7 +608,7 @@
       }
     };
 
-    // Kalkulasi Dashboard
+    // Kalkulasi Dashboard Saldo
     const updateDashboard = () => {
       let income = 0;
       let expense = 0;
@@ -571,8 +680,13 @@
             </div>
           </div>
           <div class="tx-actions">
-            <div class="tx-amount ${colorClass}">${prefix} ${formatIDR(item.amount)}</div>
-            <button class="btn-delete" data-id="${item.id}" title="Hapus">✕</button>
+            <div>
+              <div class="tx-amount ${colorClass}">${prefix} ${formatIDR(item.amount)}</div>
+            </div>
+            <div class="btn-action-group">
+              <button class="btn-edit" data-id="${item.id}" title="Edit Data">Edit</button>
+              <button class="btn-delete" data-id="${item.id}" title="Hapus Data">Hapus</button>
+            </div>
           </div>
         `;
 
@@ -580,57 +694,99 @@
       });
     };
 
-    // Keamanan XSS untuk input teks
-    const escapeHTML = (str) => {
-      const div = document.createElement("div");
-      div.textContent = str;
-      return div.innerHTML;
+    // Reset Form Input
+    const resetForm = () => {
+      document.getElementById("editingId").value = "";
+      document.getElementById("txDesc").value = "";
+      document.getElementById("txAmount").value = "";
+      document.getElementById("txType").value = "income";
+      document.getElementById("btnSubmit").textContent = "Simpan Transaksi";
+      document.getElementById("btnCancelEdit").style.display = "none";
     };
 
-    // Handler Tambah Transaksi
+    // Event: Format Pemisah Ribuan Saat Ngetik
+    document.getElementById("txAmount").addEventListener("input", (e) => {
+      const formatted = formatNumberInput(e.target.value);
+      e.target.value = formatted;
+    });
+
+    // Event: Submit Tambah / Update Transaksi
     document.getElementById("txForm").addEventListener("submit", (e) => {
       e.preventDefault();
 
+      const editId = document.getElementById("editingId").value;
       const type = document.getElementById("txType").value;
       const desc = document.getElementById("txDesc").value.trim();
-      const amount = parseFloat(document.getElementById("txAmount").value);
+      const amount = parseFormattedNumber(document.getElementById("txAmount").value);
 
       if (!desc || isNaN(amount) || amount <= 0) {
         alert("Harap masukkan keterangan dan nominal yang valid.");
         return;
       }
 
-      const newTx = {
-        id: "tx_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
-        type,
-        description: desc,
-        amount,
-        createdAt: new Date().toISOString()
-      };
+      if (editId) {
+        // Mode Update
+        const targetIndex = transactions.findIndex(t => t.id === editId);
+        if (targetIndex !== -1) {
+          transactions[targetIndex].type = type;
+          transactions[targetIndex].description = desc;
+          transactions[targetIndex].amount = amount;
+        }
+      } else {
+        // Mode Tambah Baru
+        const newTx = {
+          id: "tx_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+          type,
+          description: desc,
+          amount,
+          createdAt: new Date().toISOString()
+        };
+        transactions.unshift(newTx);
+      }
 
-      transactions.unshift(newTx);
       saveTransactions();
       updateDashboard();
       renderList();
-
-      document.getElementById("txDesc").value = "";
-      document.getElementById("txAmount").value = "";
+      resetForm();
     });
 
-    // Handler Hapus Item
+    // Event: Klik Aksi List (Edit & Hapus)
     document.getElementById("txListContainer").addEventListener("click", (e) => {
-      if (e.target.classList.contains("btn-delete")) {
-        const id = e.target.getAttribute("data-id");
-        if (confirm("Hapus catatan ini?")) {
+      const editBtn = e.target.closest(".btn-edit");
+      const deleteBtn = e.target.closest(".btn-delete");
+
+      if (editBtn) {
+        const id = editBtn.getAttribute("data-id");
+        const item = transactions.find(t => t.id === id);
+        if (item) {
+          document.getElementById("editingId").value = item.id;
+          document.getElementById("txType").value = item.type;
+          document.getElementById("txDesc").value = item.description;
+          document.getElementById("txAmount").value = formatNumberInput(item.amount.toString());
+          document.getElementById("btnSubmit").textContent = "Perbarui Transaksi";
+          document.getElementById("btnCancelEdit").style.display = "block";
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+
+      if (deleteBtn) {
+        const id = deleteBtn.getAttribute("data-id");
+        if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
           transactions = transactions.filter(t => t.id !== id);
           saveTransactions();
           updateDashboard();
           renderList();
+          if (document.getElementById("editingId").value === id) {
+            resetForm();
+          }
         }
       }
     });
 
-    // Handler Tab Filter
+    // Event: Tombol Batal Edit
+    document.getElementById("btnCancelEdit").addEventListener("click", resetForm);
+
+    // Event: Tab Filter
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -640,7 +796,12 @@
       });
     });
 
-    // Export Data JSON
+    // Event: Cetak / Simpan PDF
+    document.getElementById("btnPrintPDF").addEventListener("click", () => {
+      window.print();
+    });
+
+    // Event: Export JSON Backup
     document.getElementById("btnExport").addEventListener("click", () => {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transactions, null, 2));
       const downloadAnchor = document.createElement("a");
@@ -651,7 +812,7 @@
       downloadAnchor.remove();
     });
 
-    // Import Data JSON
+    // Event: Import JSON Restore
     document.getElementById("importFileInput").addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -678,7 +839,7 @@
       e.target.value = "";
     });
 
-    // Inisialisasi App
+    // Inisialisasi Aplikasi
     window.addEventListener("DOMContentLoaded", () => {
       loadTransactions();
       updateDashboard();
