@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AuraFinance Enterprise - Luxury Finance & Analytics</title>
+  <style>
+    :root {
+      --bg-dark: #08090c;
+      --card-bg: #111319;
+      --card-border: #222531;
+      --gold-primary: #d4af37;
+      --gold-light: #f3e5ab;
+      --gold-glow: rgba(212, 175, 55, 0.25);
+      --text-main: #f5f5f7;
+      --text-muted: #8a8e9e;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --info: #3498db;
+      --radius: 14px;
+      --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .brand-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      background: linear-gradient(135deg, #ffffff 0%, #d4af37 50%, #aa8010 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    .dev-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--gold-primary);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--gold-primary);
+      animation: goldPulse 1.8s infinite ease-in-out;
+    }
+
+    @keyframes goldPulse {
+      0%, 100% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px var(--gold-primary); }
+    }
+
+    .luxury-card {
+      background: linear-gradient(180deg, #151821 0%, var(--card-bg) 100%);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .luxury-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+    }
+
+    .balance-card {
+      text-align: center;
+      padding: 20px 16px;
+    }
+
+    .balance-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .balance-amount {
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--gold-light);
+      margin: 6px 0 16px 0;
+      text-shadow: 0 2px 12px var(--gold-glow);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 14px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-title {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .stat-value.income { color: var(--success); }
+    .stat-value.expense { color: var(--danger); }
+    .stat-value.kasbon { color: var(--warning); }
+    .stat-value.debt { color: var(--info); }
+
+    /* Canvas Analytics */
+    .chart-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .chart-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      width: 100%;
+      margin-top: 12px;
+      font-size: 0.75rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    /* Form Styles */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    input, select {
+      background-color: #0a0b0e;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition);
+      width: 100%;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #d4af37, #aa8010);
+      color: #0a0b0e;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      width: 100%;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: var(--transition);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #181b24;
+      color: var(--gold-light);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-cancel {
+      background: #222531;
+      color: #ccc;
+      margin-top: 8px;
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .search-box input {
+      padding: 10px 12px;
+      font-size: 0.85rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: fit-content;
+      padding: 8px 12px;
+      background: #0a0b0e;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+
+    .tab-btn.active {
+      background: var(--gold-primary);
+      color: #0a0b0e;
+      border-color: var(--gold-primary);
+    }
+
+    /* Transaction List */
+    .tx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .tx-list::-webkit-scrollbar { width: 4px; }
+    .tx-list::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
+
+    .tx-item {
+      background-color: #0d0e13;
+      border: 1px solid #1c1e29;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+    }
+
+    .tx-info h4 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .tx-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+    }
+
+    .tx-amount {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .tx-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-action-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-edit, .btn-delete {
+      background: #161822;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+
+    .btn-edit:hover { color: var(--gold-light); border-color: var(--gold-primary); }
+    .btn-delete:hover { color: var(--danger); border-color: var(--danger); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      padding: 24px 0;
+    }
+
+    .backup-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-print {
+      grid-column: span 2;
+      background: linear-gradient(135deg, #1f2430, #141720);
+      color: var(--gold-primary);
+      border: 1px solid var(--gold-primary);
+      font-weight: 700;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      left: 0; top: 0;
+      opacity: 0;
+      width: 100%; height: 100%;
+      cursor: pointer;
+    }
+
+    /* Toast Notification System */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      width: 90%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: #1a1d28;
+      border: 1px solid var(--gold-primary);
+      color: var(--text-main);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toast-btn-undo {
+      background: var(--gold-primary);
+      color: #0a0b0e;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media print {
+      body { background-color: #fff !important; color: #000 !important; padding: 0; }
+      .app-container { max-width: 100%; }
+      #txForm, .filter-controls, .backup-actions, .btn-action-group, .pulse-dot, .toast-container { display: none !important; }
+      .luxury-card { border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
+      .luxury-card::before { display: none !important; }
+      .brand-title, .balance-amount, .stat-value { color: #000 !important; text-shadow: none !important; -webkit-text-fill-color: #000 !important; }
+      .tx-list { max-height: none !important; overflow: visible !important; }
+      .tx-item { border: 1px solid #ddd !important; background: #fafafa !important; color: #000 !important; }
+      .tx-meta, .stat-title, .balance-label { color: #555 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1 class="brand-title">Aura Finance</h1>
+      <div class="dev-badge">
+        <span class="pulse-dot"></span>
+        <span>developer : fatur62</span>
+      </div>
+    </header>
+
+    <!-- Ringkasan Saldo -->
+    <section class="luxury-card balance-card">
+      <span class="balance-label">Total Saldo Bersih</span>
+      <div class="balance-amount" id="totalBalance">Rp 0</div>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-title">Pemasukan</span>
+          <div class="stat-value income" id="totalIncome">Rp 0</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-title">Pengeluaran</span>
+          <div class="stat-value expense" id="totalExpense">Rp 0</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-title">Kasbon (Piutang)</span>
+          <div class="stat-value kasbon" id="totalKasbon">Rp 0</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-title">Utang Saya</span>
+          <div class="stat-value debt" id="totalUtang">Rp 0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics Chart Canvas -->
+    <section class="luxury-card">
+      <div class="chart-wrapper">
+        <div class="chart-container">
+          <canvas id="financeChart" width="160" height="160"></canvas>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-color" style="background: #2ecc71;"></div> Masuk</div>
+          <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div> Keluar</div>
+          <div class="legend-item"><div class="legend-color" style="background: #f39c12;"></div> Kasbon</div>
+          <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div> Utang</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form Input Transaksi -->
+    <section class="luxury-card">
+      <form id="txForm">
+        <input type="hidden" id="editingId" value="" />
+        
+        <div class="form-group">
+          <label for="txType">Jenis Pencatatan</label>
+          <select id="txType" required>
+            <option value="income">Pemasukan (+)</option>
+            <option value="expense">Pengeluaran (-)</option>
+            <option value="kasbon">Kasbon (Dipinjam Orang)</option>
+            <option value="debt">Utang (Saya Meminjam)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="txDesc">Keterangan / Nama Peminjam</label>
+          <input type="text" id="txDesc" placeholder="Contoh: Gaji, Makan, Kasbon Budi" required autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+          <label for="txAmount">Nominal (Rp)</label>
+          <input type="text" id="txAmount" inputmode="numeric" placeholder="0" required autocomplete="off" />
+        </div>
+
+        <button type="submit" class="btn" id="btnSubmit">Simpan Transaksi</button>
+        <button type="button" class="btn btn-cancel" id="btnCancelEdit" style="display: none;">Batal Edit</button>
+      </form>
+    </section>
+
+    <!-- List & Filter Transaksi -->
+    <section class="luxury-card">
+      <div class="filter-controls">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Cari transaksi..." autocomplete="off" />
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-type="all">Semua</button>
+          <button class="tab-btn" data-type="income">Masuk</button>
+          <button class="tab-btn" data-type="expense">Keluar</button>
+          <button class="tab-btn" data-type="kasbon_debt">Kasbon/Utang</button>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-date="all">Semua Waktu</button>
+          <button class="tab-btn" data-date="today">Hari Ini</button>
+          <button class="tab-btn" data-date="week">Minggu Ini</button>
+          <button class="tab-btn" data-date="month">Bulan Ini</button>
+        </div>
+      </div>
+
+      <div class="tx-list" id="txListContainer"></div>
+
+      <div class="backup-actions">
+        <button class="btn btn-print" id="btnPrintPDF">Cetak / Simpan PDF</button>
+        <button class="btn btn-secondary" id="btnExport" style="font-size: 0.75rem; padding: 8px;">Backup JSON</button>
+        <div class="file-input-wrapper">
+          <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 8px; width: 100%;">Restore JSON</button>
+          <input type="file" id="importFileInput" accept=".json" />
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const STORAGE_KEY = "aura_finance_v1_fatur62";
+    let transactions = [];
+    let currentTypeFilter = "all";
+    let currentDateFilter = "all";
+    let searchQuery = "";
+    let lastDeletedItem = null;
+    let undoTimeout = null;
+
+    // Helper Utilitas
+    const formatNumberInput = (val) => {
+      const numbers = val.replace(/\D/g, "");
+      return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+
+    const parseFormattedNumber = (val) => {
+      if (!val) return 0;
+      const cleanStr = val.toString().replace(/\./g, "").replace(/,/g, ".");
+      const num = parseFloat(cleanStr);
+      return isNaN(num) ? 0 : num;
+    };
+
+    const formatIDR = (amount) => {
+      const num = Number(amount) || 0;
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+      }).format(num);
+    };
+
+    const formatDate = (isoString) => {
+      if (!isoString) return "-";
+      const date = new Date(isoString);
+      return date.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    };
+
+    const escapeHTML = (str) => {
+      const div = document.createElement("div");
+      div.textContent = str || "";
+      return div.innerHTML;
+    };
+
+    // Keamanan Data & Storage
+    const loadTransactions = () => {
+      try {
+        const rawData = localStorage.getItem(STORAGE_KEY);
+        if (!rawData) {
+          transactions = [];
+          return;
+        }
+        const parsed = JSON.parse(rawData);
+        if (Array.isArray(parsed)) {
+          transactions = parsed.filter(item => 
+            item && 
+            typeof item.id === "string" && 
+            typeof item.amount === "number" && 
+            !isNaN(item.amount) &&
+            typeof item.type === "string" &&
+            typeof item.createdAt === "string"
+          );
+        } else {
+          transactions = [];
+        }
+      } catch (err) {
+        console.error("Gagal mengurai LocalStorage JSON:", err);
+        transactions = [];
+      }
+    };
+
+    const saveTransactions = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+      } catch (err) {
+        showToast("Penyimpanan lokal penuh atau tidak diizinkan.");
+        console.error("Gagal menyimpan ke LocalStorage:", err);
+      }
+    };
+
+    // Toast & Undo Buffer
+    const showToast = (message, canUndo = false) => {
+      const container = document.getElementById("toastContainer");
+      container.innerHTML = "";
+
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      
+      let html = `<span>${escapeHTML(message)}</span>`;
+      if (canUndo) {
+        html += `<button class="toast-btn-undo" id="btnUndo">BATALKAN</button>`;
+      }
+      toast.innerHTML = html;
+      container.appendChild(toast);
+
+      if (canUndo) {
+        document.getElementById("btnUndo").addEventListener("click", () => {
+          if (lastDeletedItem) {
+            transactions.unshift(lastDeletedItem);
+            lastDeletedItem = null;
+            clearTimeout(undoTimeout);
+            saveTransactions();
+            updateApp();
+            container.innerHTML = "";
+          }
+        });
+      }
+
+      clearTimeout(undoTimeout);
+      undoTimeout = setTimeout(() => {
+        container.innerHTML = "";
+        lastDeletedItem = null;
+      }, 5000);
+    };
+
+    // Rendering Canvas Chart
+    const renderChart = (totals) => {
+      const canvas = document.getElementById("financeChart");
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = 65;
+      const innerRadius = 45;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const data = [
+        { label: "income", value: totals.income, color: "#2ecc71" },
+        { label: "expense", value: totals.expense, color: "#e74c3c" },
+        { label: "kasbon", value: totals.kasbon, color: "#f39c12" },
+        { label: "debt", value: totals.debt, color: "#3498db" }
+      ];
+
+      const sum = data.reduce((acc, d) => acc + d.value, 0);
+
+      if (sum === 0) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI, true);
+        ctx.fillStyle = "#1c1f2b";
+        ctx.fill();
+        return;
+      }
+
+      let startAngle = -Math.PI / 2;
+
+      data.forEach(slice => {
+        if (slice.value <= 0) return;
+        const sliceAngle = (slice.value / sum) * (2 * Math.PI);
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.arc(centerX, centerY, innerRadius, startAngle + sliceAngle, startAngle, true);
+        ctx.closePath();
+        ctx.fillStyle = slice.color;
+        ctx.fill();
+
+        startAngle += sliceAngle;
+      });
+    };
+
+    // Filter Logic
+    const getFilteredTransactions = () => {
+      const now = new Date();
+      
+      return transactions.filter(t => {
+        // Match Search Query
+        const matchesSearch = (t.description || "").toLowerCase().includes(searchQuery.toLowerCase());
+        if (!matchesSearch) return false;
+
+        // Match Type
+        let matchesType = true;
+        if (currentTypeFilter === "kasbon_debt") {
+          matchesType = t.type === "kasbon" || t.type === "debt";
+        } else if (currentTypeFilter !== "all") {
+          matchesType = t.type === currentTypeFilter;
+        }
+
+        if (!matchesType) return false;
+
+        // Match Date
+        const txDate = new Date(t.createdAt);
+        if (currentDateFilter === "today") {
+          return txDate.toDateString() === now.toDateString();
+        } else if (currentDateFilter === "week") {
+          const sevenDaysAgo = new Date(now);
+          sevenDaysAgo.setDate(now.getDate() - 7);
+          return txDate >= sevenDaysAgo;
+        } else if (currentDateFilter === "month") {
+          return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
+        }
+
+        return true;
+      });
+    };
+
+    // State & UI Controller
+    const updateApp = () => {
+      const filtered = getFilteredTransactions();
+
+      let income = 0, expense = 0, kasbon = 0, debt = 0;
+
+      filtered.forEach(t => {
+        const val = Number(t.amount) || 0;
+        if (t.type === "income") income += val;
+        else if (t.type === "expense") expense += val;
+        else if (t.type === "kasbon") kasbon += val;
+        else if (t.type === "debt") debt += val;
+      });
+
+      const netBalance = income - expense;
+
+      document.getElementById("totalBalance").textContent = formatIDR(netBalance);
+      document.getElementById("totalIncome").textContent = formatIDR(income);
+      document.getElementById("totalExpense").textContent = formatIDR(expense);
+      document.getElementById("totalKasbon").textContent = formatIDR(kasbon);
+      document.getElementById("totalUtang").textContent = formatIDR(debt);
+
+      renderChart({ income, expense, kasbon, debt });
+      renderList(filtered);
+    };
+
+    const renderList = (filtered) => {
+      const container = document.getElementById("txListContainer");
+      container.innerHTML = "";
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">Tidak ada transaksi yang cocok dengan filter.</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "tx-item";
+
+        let typeLabel = "Pemasukan", colorClass = "income", prefix = "+";
+
+        if (item.type === "expense") {
+          typeLabel = "Pengeluaran"; colorClass = "expense"; prefix = "-";
+        } else if (item.type === "kasbon") {
+          typeLabel = "Kasbon"; colorClass = "kasbon"; prefix = "•";
+        } else if (item.type === "debt") {
+          typeLabel = "Utang"; colorClass = "debt"; prefix = "•";
+        }
+
+        row.innerHTML = `
+          <div class="tx-info">
+            <h4>${escapeHTML(item.description || "Tanpa Keterangan")}</h4>
+            <div class="tx-meta">
+              <span>${typeLabel}</span>
+              <span>•</span>
+              <span>${formatDate(item.createdAt)}</span>
+            </div>
+          </div>
+          <div class="tx-actions">
+            <div>
+              <div class="tx-amount ${colorClass}">${prefix} ${formatIDR(item.amount)}</div>
+            </div>
+            <div class="btn-action-group">
+              <button class="btn-edit" data-id="${item.id}">Edit</button>
+              <button class="btn-delete" data-id="${item.id}">Hapus</button>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(row);
+      });
+    };
+
+    const resetForm = () => {
+      document.getElementById("editingId").value = "";
+      document.getElementById("txDesc").value = "";
+      document.getElementById("txAmount").value = "";
+      document.getElementById("txType").value = "income";
+      document.getElementById("btnSubmit").textContent = "Simpan Transaksi";
+      document.getElementById("btnCancelEdit").style.display = "none";
+    };
+
+    // Event Listeners
+    document.getElementById("txAmount").addEventListener("input", (e) => {
+      e.target.value = formatNumberInput(e.target.value);
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      searchQuery = e.target.value.trim();
+      updateApp();
+    });
+
+    document.getElementById("txForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const editId = document.getElementById("editingId").value;
+      const type = document.getElementById("txType").value;
+      const desc = document.getElementById("txDesc").value.trim();
+      const amount = parseFormattedNumber(document.getElementById("txAmount").value);
+
+      if (!desc || isNaN(amount) || amount <= 0) {
+        showToast("Harap masukkan deskripsi dan nominal yang valid.");
+        return;
+      }
+
+      if (editId) {
+        const idx = transactions.findIndex(t => t.id === editId);
+        if (idx !== -1) {
+          transactions[idx].type = type;
+          transactions[idx].description = desc;
+          transactions[idx].amount = amount;
+        }
+      } else {
+        const newTx = {
+          id: "tx_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+          type,
+          description: desc,
+          amount,
+          createdAt: new Date().toISOString()
+        };
+        transactions.unshift(newTx);
+      }
+
+      saveTransactions();
+      updateApp();
+      resetForm();
+      showToast("Transaksi berhasil disimpan.");
+    });
+
+    document.getElementById("txListContainer").addEventListener("click", (e) => {
+      const editBtn = e.target.closest(".btn-edit");
+      const deleteBtn = e.target.closest(".btn-delete");
+
+      if (editBtn) {
+        const id = editBtn.getAttribute("data-id");
+        const item = transactions.find(t => t.id === id);
+        if (item) {
+          document.getElementById("editingId").value = item.id;
+          document.getElementById("txType").value = item.type;
+          document.getElementById("txDesc").value = item.description;
+          document.getElementById("txAmount").value = formatNumberInput(item.amount.toString());
+          document.getElementById("btnSubmit").textContent = "Perbarui Transaksi";
+          document.getElementById("btnCancelEdit").style.display = "block";
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+
+      if (deleteBtn) {
+        const id = deleteBtn.getAttribute("data-id");
+        const idx = transactions.findIndex(t => t.id === id);
+        if (idx !== -1) {
+          lastDeletedItem = transactions[idx];
+          transactions.splice(idx, 1);
+          saveTransactions();
+          updateApp();
+          if (document.getElementById("editingId").value === id) {
+            resetForm();
+          }
+          showToast("Data dihapus.", true);
+        }
+      }
+    });
+
+    document.getElementById("btnCancelEdit").addEventListener("click", resetForm);
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const parent = e.target.parentElement;
+        parent.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+
+        const type = e.target.getAttribute("data-type");
+        const date = e.target.getAttribute("data-date");
+
+        if (type) currentTypeFilter = type;
+        if (date) currentDateFilter = date;
+
+        updateApp();
+      });
+    });
+
+    document.getElementById("btnPrintPDF").addEventListener("click", () => {
+      window.print();
+    });
+
+    document.getElementById("btnExport").addEventListener("click", () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transactions, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `aurafinance_backup_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+
+    document.getElementById("importFileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (Array.isArray(parsed)) {
+            transactions = parsed.filter(item => 
+              item && 
+              typeof item.id === "string" && 
+              typeof item.amount === "number" && 
+              !isNaN(item.amount) &&
+              typeof item.type === "string" &&
+              typeof item.createdAt === "string"
+            );
+            saveTransactions();
+            updateApp();
+            showToast("Data berhasil dipulihkan!");
+          } else {
+            showToast("Format file JSON tidak valid.");
+          }
+        } catch (err) {
+          showToast("Gagal membaca file JSON.");
+          console.error(err);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadTransactions();
+      updateApp();
+    });
+  </script>
+</body>
+</html>
