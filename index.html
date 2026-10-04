@@ -14,7 +14,7 @@
       font-family: system-ui, -apple-system, sans-serif;
       background-color: #f1f5f9;
       color: #334155;
-      padding: 24px;
+      padding: 16px;
       display: flex;
       justify-content: center;
     }
@@ -41,14 +41,19 @@
       font-size: 0.9rem;
       color: #64748b;
       margin-bottom: 16px;
+      line-height: 1.4;
     }
+    
+    /* Perbaikan Form Layout Responsif */
     .form-group {
       display: flex;
       gap: 8px;
       margin-bottom: 16px;
+      flex-wrap: wrap; /* Mencegah elemen keluar dari kartu */
     }
     input[type="text"] {
-      flex: 1;
+      flex: 1 1 200px; /* Fleksibel dengan lebar minimal */
+      min-width: 0;    /* Mencegah input meluap di flexbox */
       padding: 10px 14px;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
@@ -58,6 +63,7 @@
     input[type="text"]:focus {
       border-color: #2563eb;
     }
+    
     .data-list {
       list-style: none;
       border: 1px solid #f1f5f9;
@@ -76,9 +82,12 @@
     .data-item:last-child {
       border-bottom: none;
     }
+    
+    /* Perbaikan Tombol Aksi */
     .actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     button {
       padding: 10px 16px;
@@ -88,7 +97,12 @@
       border-radius: 6px;
       border: 1px solid #cbd5e1;
       background-color: #ffffff;
+      white-space: nowrap; /* Teks tombol tidak patah */
       transition: background-color 0.2s;
+    }
+    .btn-submit {
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     button:hover {
       background-color: #f8fafc;
@@ -107,6 +121,19 @@
       color: #94a3b8;
       font-size: 0.9rem;
     }
+
+    /* Penyesuaian khusus layar HP kecil */
+    @media (max-width: 480px) {
+      .form-group {
+        flex-direction: column;
+      }
+      .btn-submit {
+        width: 100%;
+      }
+      .actions button {
+        flex: 1 1 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -119,7 +146,7 @@
       
       <form id="formAddData" class="form-group">
         <input type="text" id="inputItem" placeholder="Ketik nama catatan baru..." required>
-        <button type="submit" class="primary">Tambah Data</button>
+        <button type="submit" class="primary btn-submit">Tambah Data</button>
       </form>
 
       <ul id="dataContainer" class="data-list">
@@ -180,7 +207,7 @@
       });
     }
 
-    // 2. TAMBAH DATA BARU (Untuk Pengujian)
+    // 2. TAMBAH DATA BARU
     formAddData.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = inputItem.value.trim();
@@ -251,7 +278,6 @@
           console.error("Gagal memulihkan data:", error);
           alert("Gagal memulihkan data: Berkas yang Anda pilih bukan berkas cadangan yang valid.");
         } finally {
-          // Reset nilai input agar dapat memilih file yang sama berkali-kali
           fileRestore.value = '';
         }
       };
@@ -269,7 +295,7 @@
     btnTriggerRestore.addEventListener('click', () => fileRestore.click());
     fileRestore.addEventListener('change', restoreData);
 
-    // Render tampilan pertama kali saat halaman dimuat
+    // Initial Render
     renderList();
   </script>
 </body>
